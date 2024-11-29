@@ -1,1 +1,1 @@
-# advent-of-code-2024
+Recording my solutions for Advent of Code 2024
