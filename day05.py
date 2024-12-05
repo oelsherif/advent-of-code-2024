@@ -14,7 +14,7 @@ def check_update(update, rules) -> bool:
     return True
 
 def fix_update(update, rules) -> list:
-    '''sorts update according to ordering rules. Uses selection sort'''
+    '''sorts update according to ordering rules'''
     i, n = 0, len(update)
     while i < n:
         page1 = update[i]
