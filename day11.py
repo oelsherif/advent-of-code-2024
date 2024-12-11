@@ -32,24 +32,3 @@ print(f"Part 1 answer: {ans_p1}")
 print(f"Part 1 time: {t2 - t1:.2f}s")
 print(f"Part 2 answer: {ans_p2}")
 print(f"Part 2 time: {t3 - t2:.2f}s")
-
-
-
-# stones = line[:]
-# stones_dict = Counter(stones)
-# t1 = time.time()
-# n = 25
-# for _ in range(n):
-#     stones = evolve_list(stones)
-# t2 = time.time()
-# ans_p1 = len(stones)
-# print(f"Part 1 answer: {ans_p1}")
-# print(f"Part 1 time: {t2 - t1:.2f}s")
-
-# n = 75
-# for _ in range(n):
-#     stones_dict = evolve_dict(stones_dict)
-# t3 = time.time()
-# ans_p2 = sum(stones_dict.values())
-# print(f"Part 2 answer: {ans_p2}")
-# print(f"Part 2 time: {t3 - t2:.2f}s")
