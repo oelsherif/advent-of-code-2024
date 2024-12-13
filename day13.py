@@ -38,7 +38,7 @@ def solve_all(mats):
         if not presses:
             continue
         A_n, B_n = presses
-        ans += int((3 * A_n + B_n))
+        ans += 3 * A_n + B_n
     return ans
 
 ans_p1 = solve_all(mats_p1)
