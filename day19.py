@@ -7,7 +7,7 @@ patterns = [word for word in lines[0][:-1].split(', ')]
 designs = [line[:-1] for line in lines[2:]]
 
 def count_options(design) -> int:
-    ends = defaultdict(list) #end[start] = [end1, end2, ...]
+    ends = defaultdict(list) #ends[start] = [end1, end2, ...]
     n = len(design)
     for pattern in patterns:
         m = len(pattern)
