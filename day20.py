@@ -26,29 +26,17 @@ deltas = {
     '<': (-1, 0),
 }
 
-# adj_dirs = {
-#     '^': ['>', '<'],
-#     '>': ['^', 'v'],
-#     'v': ['>', '<'],
-#     '<': ['^', 'v'],
-# }
-
-# opp_dir = {
-#     '^': 'v',
-#     '>': '<',
-#     'v': '^',
-#     '<': '>',
-# }
-
 xi, yi = find_symbol(grid, 'S')
 xf, yf = find_symbol(grid, 'E')
 grid[yi][xi] = 0
 grid[yf][xf] = '.'
 t1 = time.time()
 
+coords = {} #coordinates at each ns
 step = 0
 x, y = xi, yi
 while True:
+    coords[step] = (x, y)
     if (x, y) == (xf, yf):
         print(step)
         break
@@ -61,26 +49,58 @@ while True:
             break
 
 #dirs = list(deltas.keys())
-cheats = defaultdict(int)
-for y in range(1, n_rows-1):
-    for x in range(1, n_cols-1):
-        tile = grid[y][x]
-        if tile != '#':
-            continue
-        adjacents = []
-        for (dx, dy) in deltas.values():
-            new_x, new_y = x+dx, y+dy
-            new_tile = grid[new_y][new_x]
-            if new_tile != '#':
-                adjacents.append(new_tile)
-        #print(x, y, adjacents)
-        for j, tile1 in enumerate(adjacents):
-            for tile2 in adjacents[j+1:]:
-                cheats[abs(tile1-tile2) - 2] += 1
+def get_cheats():
+    '''original part 1 method'''
+    cheats = defaultdict(int)
+    for y in range(1, n_rows-1):
+        for x in range(1, n_cols-1):
+            tile = grid[y][x]
+            if tile != '#':
+                continue
+            adjacents = []
+            for (dx, dy) in deltas.values():
+                new_x, new_y = x+dx, y+dy
+                new_tile = grid[new_y][new_x]
+                if new_tile != '#':
+                    adjacents.append(new_tile)
+            #print(x, y, adjacents)
+            for j, tile1 in enumerate(adjacents):
+                for tile2 in adjacents[j+1:]:
+                    cheats[abs(tile1-tile2) - 2] += 1
+    return cheats
 
-# saved_times = sorted(cheats.keys())
-# for t in saved_times[1:]:
-#     print (f'There are {cheats[t]} cheats that save {t} picoseconds')
+def count_cheats(len_cheat, threshold):
+    '''counts cheats that save more than threshhold, where len_cheat is the max allowed cheat'''
+    count = 0
+    n = len(coords)
+    for i in range(n):
+        x1, y1 = coords[i]
+        for j in range(i+threshold, n):
+            x2, y2 = coords[j]
+            man_dist = abs(x2 - x1) + abs(y2 - y1)
+            if man_dist > len_cheat:
+                continue
+            time_saved = j - i - man_dist
+            if time_saved >= threshold:
+                count += 1
+    return count
 
-ans_p1 = sum(n for t, n in cheats.items() if t >= 100)
+t1 = time.time()
+ans_p1 = sum(n for t, n in get_cheats().items() if t >= 100)
+t2 = time.time()
+
+print ("METHOD 1. Part 1 Only")
 print(f"Part 1 answer: {ans_p1}")
+print(f"Part 1 time: {t2 - t1:.3f}s")
+
+t1 = time.time()
+ans_p1 = count_cheats(2, 100)
+t2 = time.time()
+ans_p2 = count_cheats(20, 100)
+t3 = time.time()
+
+print ("METHOD 2")
+print(f"Part 1 answer: {ans_p1}")
+print(f"Part 1 time: {t2 - t1:.3f}s")
+print(f"Part 2 answer: {ans_p2}")
+print(f"Part 2 time: {t3 - t2:.3f}s")
