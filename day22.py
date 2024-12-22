@@ -17,15 +17,13 @@ def step_3(num):
     num %= 16777216
     return num
 
-def evolve_secret(num, n):
+def evolve_secret(num, n = 1):
     for _ in range(n):
         num = step_3(step_2(step_1(num)))
     return num
 
-print(evolve_secret(123,10))
 t1 = time.time()
 ans_p1 = sum(evolve_secret(num, 2000) for num in secrets)
 t2 = time.time()
-
 print(f"Part 1 answer: {ans_p1}")
 print(f"Part 1 time: {t2 - t1:.3f}s")
