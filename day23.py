@@ -19,8 +19,8 @@ for comp1, friends1 in friends.items():
             for comp3 in comps:
                 groups.add(tuple(sorted([comp1, comp2, comp3])))
 
-t2 = time.time()
 ans_p1 = len(groups)
+t2 = time.time()
 print(f"Part 1 answer: {ans_p1}")
 print(f"Part 1 time: {t2 - t1:.3f}s")
 
