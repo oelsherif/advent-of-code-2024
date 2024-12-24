@@ -71,43 +71,61 @@ def get_man_dist(s):
         prev_char = char
     return total_man_dist
 
-def get_shortest_path(char1, char2, grid, locs):
-    paths = get_paths(char1, char2, grid, locs)
-    dists = [get_man_dist(path) for path in paths]
-    i = dists.index(min(dists))
-    return paths[i]
-
-def get_shortest_sequence_numpad(s):
-    '''given a sequence on a numpad, return one shortest keypad sequence to do it'''
-    sequence = ''
+def get_numpad_presses(s):
+    '''returns list of all possible sequences to replicate a numpad string s'''
+    old_sequences = ['']
     prev_char = 'A'
     for char in s:
-        sequence += get_shortest_path(prev_char, char, numpad_grid, numpad_loc)
+        new_sequences = []
+        for path in numpad_paths[(prev_char, char)]:
+            for sequence in old_sequences:
+                new_sequences.append(sequence + path)
+        old_sequences = new_sequences[:]
         prev_char = char
-    return sequence
+    return new_sequences
 
-# def get_shortest_sequence_keypad(s):
-#     '''given a sequence on a keypad, and the number of robots, return one shortest keypad sequence to do it'''
-#     sequence = ''
+def get_keypad_presses(s):
+    '''returns list of all possible sequences to replicate a keypad string s'''
+    old_sequences = ['']
+    prev_char = 'A'
+    for char in s:
+        new_sequences = []
+        for path in keypad_paths[(prev_char, char)]:
+            for sequence in old_sequences:
+                new_sequences.append(sequence + path)
+        old_sequences = new_sequences[:]
+        prev_char = char
+    return new_sequences
+
+def get_layered_man_dist(string, n_layers):
+    old_strings = [string]
+    for _ in range(n_layers):
+        new_strings = []
+        for s in old_strings:
+            new_strings += get_keypad_presses(s)
+        new_lens = [len(s) for s in new_strings]
+        min_len = min(new_lens)
+        old_strings = [s for s, len in zip(new_strings, new_lens) if len == min_len]
+    return min([get_man_dist(s) for s in old_strings])
+
+def get_optimum_path_numpad(s):
+    path = ''
+    prev_char = 'A'
+    for char in s:
+        path += numpad_shortest_path[(prev_char, char)]
+        prev_char = char
+    return path
+
+# def get_optimum_path_keypad(s, n = 1):
+#     path = ''
 #     prev_char = 'A'
 #     for char in s:
-#         sequence += get_shortest_path(prev_char, char, keypad_grid, keypad_loc)
+#         path += keypad_shortest_path[(prev_char, char)]
 #         prev_char = char
-#     return sequence
+#     if n:
+#         return get_optimum_path_keypad(path, n-1)
+#     return path
 
-
-def get_shortest_sequence_keypad(s, n_robots):
-    '''given a sequence on a keypad, and the number of robots, return one shortest keypad sequence to do it'''
-    sequence = ''
-    prev_char = 'A'
-    for char in s:
-        sequence += get_shortest_path(prev_char, char, keypad_grid, keypad_loc)
-        prev_char = char
-    if n_robots:
-        return get_shortest_sequence_keypad(sequence, n_robots-1)
-    return sequence
-
-    
 t1 = time.time()
 
 numpad_chars = '0123456789A'
@@ -125,38 +143,72 @@ numpad_paths = {}
 keypad_paths = {}
 for char1 in numpad_chars:
     for char2 in numpad_chars:
-        numpad_paths[(char1, char2)] = get_paths(char1, char2, numpad_grid, numpad_loc)
+        paths = get_paths(char1, char2, numpad_grid, numpad_loc)
+        len_paths = [get_man_dist(path) for path in paths]
+        min_len = min(len_paths)
+        numpad_paths[(char1, char2)] = [path for path, len in zip(paths, len_paths) if len == min_len]
 
 for char1 in keypad_chars:
     for char2 in keypad_chars:
-        keypad_paths[(char1, char2)] = get_paths(char1, char2, keypad_grid, keypad_loc)
+        paths = get_paths(char1, char2, keypad_grid, keypad_loc)
+        len_paths = [get_man_dist(path) for path in paths]
+        min_len = min(len_paths)
+        keypad_paths[(char1, char2)] = [path for path, len in zip(paths, len_paths) if len == min_len]
 
+n_layers = 3
+numpad_shortest_path = {}
 keypad_shortest_path = {}
+for char1 in numpad_chars:
+    for char2 in numpad_chars:
+        paths = numpad_paths[(char1, char2)]
+        len_paths = [get_layered_man_dist(path, n_layers) for path in paths]
+        min_len = min(len_paths)
+        numpad_shortest_path[(char1, char2)] = [path for path, len in zip(paths, len_paths) if len == min_len][0]
+
 for char1 in keypad_chars:
     for char2 in keypad_chars:
-        keypad_shortest_path[(char1, char2)] = get_shortest_path(char1, char2, keypad_grid, keypad_loc)
+        paths = keypad_paths[(char1, char2)]
+        len_paths = [get_layered_man_dist(path, n_layers) for path in paths]
+        min_len = min(len_paths)
+        keypad_shortest_path[(char1, char2)] = [path for path, len in zip(paths, len_paths) if len == min_len][0]
 
-# print(get_shortest_sequence_numpad('029A'))
-# print(get_shortest_sequence_keypad('<A^A>^^AvvvA', 1))
-# print(len(get_shortest_sequence_keypad('<A^A>^^AvvvA', 24)))
-# robot_keypad_dist = {}
-# robot_keypad_dist[1] = keypad_man_dist
-# for i in range(2, 26):
-#     robot_keypad_dist[i] = {}
-#     for char1 in keypad_chars:
-#         for char2 in keypad_chars:
-#             path = keypad_shortest_path[(char1, char2)]
-#             length = 0
-#             prev_char = 'A'
-#             for char in path:
-#                 length += robot_keypad_dist[i-1][(prev_char, char)] + 1
-#                 prev_char = char
-#             robot_keypad_dist[i][(char1, char2)] = length
+keypad_len_shortest_path = {}
+keypad_len_shortest_path[1] = {}
+for char1 in keypad_chars:
+    for char2 in keypad_chars:
+        keypad_len_shortest_path[1][(char1, char2)] = keypad_man_dist[(char1, char2)] + 1
+for i in range(2, 26):
+    keypad_len_shortest_path[i] = {}
+    for char1 in keypad_chars:
+        for char2 in keypad_chars:
+            len_path = 0
+            path = keypad_shortest_path[(char1, char2)]
+            prev_char = 'A'
+            for char in path:
+                len_path += keypad_len_shortest_path[i-1][(prev_char, char)]
+                prev_char = char 
+            keypad_len_shortest_path[i][(char1, char2)] = len_path
 
-t1 = time.time()
-code = '456A'
-keypad_presses = get_shortest_sequence_numpad(code)
-ans = get_shortest_sequence_keypad(keypad_presses, 1)
+def get_len_shortest_path(s, n):
+    length = 0
+    prev_char = 'A'
+    for char in s:
+        length += keypad_len_shortest_path[n][(prev_char, char)]
+        prev_char = char
+    return length
 
-print(len(ans))
+def calculate_complexity(codes, n_robots):
+    complexity = 0
+    for code in codes:
+        s1 = get_optimum_path_numpad(code)
+        len_seq = get_len_shortest_path(s1, n_robots)
+        code_int = int(code[:-1])
+        complexity += len_seq * code_int
+    return complexity
+
+ans_p1 = calculate_complexity(codes, 2)
+ans_p2 = calculate_complexity(codes, 25)
 t2 = time.time()
+print(f"Part 1 answer: {ans_p1}")
+print(f"Part 2 answer: {ans_p2}")
+print(f"Time: {t2 - t1:.3f}s")
